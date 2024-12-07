@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: docker-registry
+  name: docker-registry-env
+data:
+  REGISTRY_AUTH: htpasswd
+  REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+  REGISTRY_AUTH_HTPASSWD_PATH: /auth/registry.password
+  REGISTRY_HTTP_SECRET: http_secret
+  REGISTRY_TITLE: Docker Registry UI # Title of the registry
+  DELETE_IMAGES: 'true' # Allow delete of images
+  PULL_URL: '' # Override the pull URL
+  SHOW_CATALOG_NB_TAGS: 'false' # Show number of tags per images on catalog page. This will produce + nb images requests, not recommended on large registries.
+  SHOW_CONTENT_DIGEST: 'false' # Show content digest in docker tag list.
+  SINGLE_REGISTRY: 'true' # Remove the menu that show the dialogs to add, remove and change the endpoint of your docker registry.
+  CATALOG_ELEMENTS_LIMIT: '1000' # Limit the number of elements in the catalog page.
+  HISTORY_CUSTOM_LABELS: '' # Expose custom labels in history page, custom labels will be processed like maintainer label.
+  NGINX_LISTEN_PORT: '80' # The port to listen on the container. If under 1024, the user must be root
+  USE_CONTROL_CACHE_HEADER: 'false' # Add header Control-Cache: no-store, no-cache on requests to registry server.
+  TAGLIST_ORDER: alpha-asc;num-desc # Set the default order for the taglist page, could be `num-asc;alpha-asc`, `num-desc;alpha-asc`, `num-asc;alpha-desc`, `num-desc;alpha-desc`, `alpha-asc;num-asc`, `alpha-asc;num-desc`, `alpha-desc;num-asc` or `alpha-desc;num-desc`.
+  CATALOG_DEFAULT_EXPANDED: 'false' # Expand by default all repositories in catalog
+  CATALOG_MIN_BRANCHES: '1' # Set the minimum repository/namespace to expand (e.g. `joxit/docker-registry-ui` `joxit/` is the repository/namespace). Can be 0 to disable branching.
+  CATALOG_MAX_BRANCHES: '1' # Set the maximum repository/namespace to expand (e.g. `joxit/docker-registry-ui` `joxit/` is the repository/namespace). Can be 0 to disable branching.
+  TAGLIST_PAGE_SIZE: '100' # Set the number of tags to display in one page.
+  REGISTRY_SECURED: 'false' # By default, the UI will check on every requests if your registry is secured or not (you will see `401` responses in your console). Set to `true` if your registry uses Basic Authentication and divide by two the number of call to your registry.
+  THEME: auto # Select the default theme to apply, values can be `auto`, `dark` and `light`

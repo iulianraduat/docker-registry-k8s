@@ -1,0 +1,238 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: docker-registry
+  name: docker-registry
+spec:
+  selector:
+    app: docker-registry
+  type: NodePort
+  ports:
+    - name: '5000'
+      protocol: TCP
+      port: 5000
+      targetPort: 5000
+    - name: '80'
+      protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: docker-registry
+  name: docker-registry-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: docker-registry
+  name: docker-registry-auth-volume
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: docker-registry
+  name: docker-registry-config
+data:
+  config.yml: |
+    version: 0.1
+    log:
+      level: debug # Options: debug, info, warn, error, fatal
+      fields:
+        service: registry
+    storage:
+      cache:
+        blobdescriptor: inmemory
+      filesystem:
+        rootdirectory: /var/lib/registry
+      delete:
+        enabled: true
+      maintenance:
+        uploadpurging:
+          enabled: false
+          age: 168h
+          interval: 24h
+          dryrun: false
+    http:
+      addr: :5000
+      headers:
+        X-Content-Type-Options: [nosniff]
+    health:
+      storagedriver:
+        enabled: true
+        interval: 10s
+        threshold: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: docker-registry
+  name: docker-registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docker-registry
+  template:
+    metadata:
+      labels:
+        app: docker-registry
+    spec:
+      containers:
+        - name: docker-registry
+          image: registry:2
+          ports:
+            - containerPort: 5000
+          env:
+            - name: REGISTRY_HTTP_ADDR
+              value: '0.0.0.0:5000'
+            - name: REGISTRY_HTTP_DEBUG_ADDR
+              value: '0.0.0.0:5001'
+            - name: REGISTRY_AUTH
+              valueFrom:
+                configMapKeyRef:
+                  key: REGISTRY_AUTH
+                  name: docker-registry-env
+            - name: REGISTRY_AUTH_HTPASSWD_REALM
+              valueFrom:
+                configMapKeyRef:
+                  key: REGISTRY_AUTH_HTPASSWD_REALM
+                  name: docker-registry-env
+            - name: REGISTRY_AUTH_HTPASSWD_PATH
+              valueFrom:
+                configMapKeyRef:
+                  key: REGISTRY_AUTH_HTPASSWD_PATH
+                  name: docker-registry-env
+            - name: REGISTRY_HTTP_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: REGISTRY_HTTP_SECRET
+                  name: docker-registry-env
+          volumeMounts:
+            - name: docker-registry-storage
+              mountPath: /var/lib/registry
+            - name: docker-registry-auth-volume
+              mountPath: /auth
+            - name: docker-registry-config
+              mountPath: /etc/docker/registry/config.yml
+              subPath: config.yml
+        - name: docker-registry-ui
+          image: joxit/docker-registry-ui:2
+          ports:
+            - containerPort: 80
+          env:
+            - name: NGINX_PROXY_PASS_URL
+              value: http://docker-registry:5000
+            - name: REGISTRY_TITLE
+              valueFrom:
+                configMapKeyRef:
+                  key: REGISTRY_TITLE
+                  name: docker-registry-env
+            - name: DELETE_IMAGES
+              valueFrom:
+                configMapKeyRef:
+                  key: DELETE_IMAGES
+                  name: docker-registry-env
+            - name: PULL_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: PULL_URL
+                  name: docker-registry-env
+            - name: SHOW_CATALOG_NB_TAGS
+              valueFrom:
+                configMapKeyRef:
+                  key: SHOW_CATALOG_NB_TAGS
+                  name: docker-registry-env
+            - name: SHOW_CONTENT_DIGEST
+              valueFrom:
+                configMapKeyRef:
+                  key: SHOW_CONTENT_DIGEST
+                  name: docker-registry-env
+            - name: SINGLE_REGISTRY
+              valueFrom:
+                configMapKeyRef:
+                  key: SINGLE_REGISTRY
+                  name: docker-registry-env
+            - name: CATALOG_ELEMENTS_LIMIT
+              valueFrom:
+                configMapKeyRef:
+                  key: CATALOG_ELEMENTS_LIMIT
+                  name: docker-registry-env
+            - name: HISTORY_CUSTOM_LABELS
+              valueFrom:
+                configMapKeyRef:
+                  key: HISTORY_CUSTOM_LABELS
+                  name: docker-registry-env
+            - name: NGINX_LISTEN_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: NGINX_LISTEN_PORT
+                  name: docker-registry-env
+            - name: USE_CONTROL_CACHE_HEADER
+              valueFrom:
+                configMapKeyRef:
+                  key: USE_CONTROL_CACHE_HEADER
+                  name: docker-registry-env
+            - name: TAGLIST_ORDER
+              valueFrom:
+                configMapKeyRef:
+                  key: TAGLIST_ORDER
+                  name: docker-registry-env
+            - name: CATALOG_DEFAULT_EXPANDED
+              valueFrom:
+                configMapKeyRef:
+                  key: CATALOG_DEFAULT_EXPANDED
+                  name: docker-registry-env
+            - name: CATALOG_MIN_BRANCHES
+              valueFrom:
+                configMapKeyRef:
+                  key: CATALOG_MIN_BRANCHES
+                  name: docker-registry-env
+            - name: CATALOG_MAX_BRANCHES
+              valueFrom:
+                configMapKeyRef:
+                  key: CATALOG_MAX_BRANCHES
+                  name: docker-registry-env
+            - name: TAGLIST_PAGE_SIZE
+              valueFrom:
+                configMapKeyRef:
+                  key: TAGLIST_PAGE_SIZE
+                  name: docker-registry-env
+            - name: REGISTRY_SECURED
+              valueFrom:
+                configMapKeyRef:
+                  key: REGISTRY_SECURED
+                  name: docker-registry-env
+            - name: THEME
+              valueFrom:
+                configMapKeyRef:
+                  key: THEME
+                  name: docker-registry-env
+      volumes:
+        - name: docker-registry-storage
+          persistentVolumeClaim:
+            claimName: docker-registry-storage
+        - name: docker-registry-auth-volume
+          persistentVolumeClaim:
+            claimName: docker-registry-auth-volume
+        - name: docker-registry-config
+          configMap:
+            name: docker-registry-config
