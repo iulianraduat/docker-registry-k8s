@@ -79,6 +79,15 @@ data:
         enabled: true
         interval: 10s
         threshold: 3
+    notifications:
+      endpoints:
+        - name: keel
+          url: http://keel.k8s/v1/webhooks/registry
+          headers:
+            Content-Type: application/json
+          timeout: 500ms
+          threshold: 5
+          backoff: 1s
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -126,6 +135,8 @@ spec:
                 configMapKeyRef:
                   key: REGISTRY_HTTP_SECRET
                   name: docker-registry-env
+            - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
+              value: '/var/lib/registry'
           volumeMounts:
             - name: docker-registry-storage
               mountPath: /var/lib/registry
