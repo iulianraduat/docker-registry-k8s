@@ -84,7 +84,7 @@ data:
         - name: keel
           url: http://keel.k8s/v1/webhooks/registry
           headers:
-            Content-Type: application/json
+            Content-Type: [application/json]
           timeout: 500ms
           threshold: 5
           backoff: 1s
