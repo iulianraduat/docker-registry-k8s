@@ -82,7 +82,7 @@ data:
     notifications:
       endpoints:
         - name: keel
-          url: http://keel.k8s/v1/webhooks/registry
+          url: http://keel.k8s/v1/webhook/registry
           headers:
             Content-Type: [application/json]
           timeout: 500ms
