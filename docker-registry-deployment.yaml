@@ -88,6 +88,8 @@ data:
           timeout: 500ms
           threshold: 5
           backoff: 1s
+          events:
+            - push
 ---
 apiVersion: apps/v1
 kind: Deployment

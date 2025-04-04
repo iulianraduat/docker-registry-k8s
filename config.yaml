@@ -34,3 +34,5 @@ notifications:
       timeout: '500ms'
       threshold: 5
       backoff: '1s'
+      events:
+        - push
