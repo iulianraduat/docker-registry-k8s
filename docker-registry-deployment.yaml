@@ -148,7 +148,7 @@ spec:
               mountPath: /etc/docker/registry/config.yml
               subPath: config.yml
         - name: docker-registry-ui
-          image: joxit/docker-registry-ui:2
+          image: joxit/docker-registry-ui:latest
           ports:
             - containerPort: 80
           env:
