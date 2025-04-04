@@ -109,7 +109,7 @@ spec:
     spec:
       containers:
         - name: docker-registry
-          image: registry:2
+          image: registry:latest
           ports:
             - containerPort: 5000
           env:
